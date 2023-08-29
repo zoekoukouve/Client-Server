@@ -1,4 +1,4 @@
-#include "aid_functions.h"
+//#include "aid_functions.h"
 // Function to count lines of a file
 int file_lines(FILE* fp){
     if (fp == NULL){
