@@ -1,6 +1,6 @@
 #include "aid_functions.h"
 
-
+using namespace std;  
 // Close and unlink semophores
 void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
      
