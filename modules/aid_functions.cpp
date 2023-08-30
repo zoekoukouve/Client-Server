@@ -107,7 +107,12 @@ void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory)
             cout << lii;
 
             fflush(stdout);
-            strcpy(temp_memory[linecounter-first_line],lii);
+            
+           
+            strncpy(temp_memory[linecounter - first_line], lii, MAX_LINE_SIZE - 1);
+            temp_memory[linecounter - first_line][MAX_LINE_SIZE - 1] = '\0';
+            return;
+            
         }
         
 		linecounter++;

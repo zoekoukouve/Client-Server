@@ -138,6 +138,7 @@ void parent(vector<string>& filenames, int clients, int files, int requests){
             int first_line = shared_memory->start_line;
             int wanted_file = shared_memory->file_num;
             char** temp_memory = shared_memory->temp_mem;
+            cout << "File " << wanted_file << "lines: " << first_line << last_line << endl;
           
            // string sfilename = filenames[wanted_file];
 
