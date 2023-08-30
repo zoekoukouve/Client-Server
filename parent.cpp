@@ -74,7 +74,7 @@ void parent(vector<string>& filenames, int clients, int files, int requests){
     shared_memory->file_num = -1;
     shared_memory->start_line = -1;
     shared_memory->end_line = -1;
-    shared_memory->temp_mem_used = 0;
+    shared_memory->temp_mem_used = -1;
     shared_memory->temp_mem = NULL;
 
     if(sem_post(mutex_writer) < 0){
@@ -133,21 +133,25 @@ void parent(vector<string>& filenames, int clients, int files, int requests){
             exit(EXIT_FAILURE);
         }          
                 
-        if (shared_memory->temp_mem_used == 0){
+        if (shared_memory->temp_mem_used == 1){
             int last_line = shared_memory->end_line;
             int first_line = shared_memory->start_line;
             int wanted_file = shared_memory->file_num;
             char** temp_memory = shared_memory->temp_mem;
           
+           // string sfilename = filenames[wanted_file];
+
             string sfilename = filenames[wanted_file];
-            char* filename = sfilename.c_str;
+            const char* filename = sfilename.c_str(); 
+
             FILE* fp = fopen(filename, "r");
             if (fp == NULL){
                 printf("Could not open file %s", filename);
                 return;
             }
-            fclose(fp);
             
+            return_segment(fp, first_line, last_line, temp_memory);
+            fclose(fp);
          } 
         //shared_memory->segment = segm[shared_memory->wanted_segment_num];
         //gettimeofday(&t1, NULL); 
@@ -193,7 +197,7 @@ int main(int argc, char** argv){
     int N = atoi(argv[1]);
     int M = atoi(argv[2]);
     int L = atoi(argv[3]);
-    cout << N <<M<<L;
+    cout << N <<M<<L << endl;
 
     vector<string> filenames;
     for (int i = 0; i < M; i++) {
@@ -202,10 +206,10 @@ int main(int argc, char** argv){
 
     // sem_t* mutex_writer, *mutex_finished, *mutex_diff, *mutex_same;
     // semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
-    // sem_unlink("mutex_writer");
-    // sem_unlink("mutex_finished");
-    // sem_unlink("mutex_diff");
-    // sem_unlink("mutex_same");    
+    sem_unlink("mutex_writer");
+    sem_unlink("mutex_finished");
+    sem_unlink("mutex_diff");
+    sem_unlink("mutex_same");    
     parent(filenames, N, M, L);
 
 }

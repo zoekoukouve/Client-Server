@@ -1,6 +1,8 @@
 #include "aid_functions.h"
+#include <cstring>
 
 using namespace std;  
+
 // Close and unlink semophores
 void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
      
@@ -86,4 +88,28 @@ void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, vo
     }
 
     return;
+}
+
+
+void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory){
+   
+    char line[MAX_LINE_SIZE]; 
+    int linecounter = 0;
+    char* lii;
+    
+    while ((lii=fgets(line, MAX_LINE_SIZE, fp)) != NULL) {
+		if (linecounter == last_line + 1) {
+			return;
+		} else if (linecounter < first_line){
+            // do nothing
+        } else{
+            cout << linecounter-first_line;
+            cout << lii;
+
+            fflush(stdout);
+            strcpy(temp_memory[linecounter-first_line],lii);
+        }
+        
+		linecounter++;
+	}
 }

@@ -3,7 +3,7 @@
 #include <cstdlib>   // Include this header for srand and rand functions
 #include <ctime>     // Include this header for time function
 
-#define LINES 10
+#define LINES 4
 #define MAX_LINE_SIZE 65536 // 64KBytes
 
 using namespace std;
@@ -25,6 +25,7 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
 
         // New segment
         int segment_lines = last_line - first_line;
+        cout << i << "size of seg " << segment_lines << endl;
         char** segment = (char**)malloc(segment_lines * sizeof(char*));
         for (int i = 0 ; i < segment_lines; i++){
             segment[i] = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
@@ -54,22 +55,22 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         //execute//////////////////////////////////////////
 
         for (int i = 0 ; i < segment_lines; i++){
-            cout << segment[i];
+            cout << i << " " << segment[i] << endl;
         }  
             
         shared_memory->temp_mem_used = 0;
-        
-        if(sem_post((sem_t*)mutex_writer) < 0){
-            perror("sem_post failed on child, semaph[wanted_seg]");
-            exit(EXIT_FAILURE);
-        }
-
 
         // free temp segment
         for (int i = 0 ; i < segment_lines; i++){
             free(segment[i]);
         }
         free(segment);
+
+        if(sem_post((sem_t*)mutex_writer) < 0){
+            perror("sem_post failed on child, semaph[wanted_seg]");
+            exit(EXIT_FAILURE);
+        }
+
         
         // Reply
         // line = ret_line(shared_memory->segment, nline);
