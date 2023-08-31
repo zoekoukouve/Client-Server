@@ -168,10 +168,10 @@ void parent(int clients, int files, int requests){
 
     // Services
 
-    // vector<pthread_t> subThreads(clients*requests);  // Vector to store worker threads
-    // int i = 0;
-    // vector<CallData*> data;  // Temporary vector to store data of each line
-    // CallData* callData;    
+    vector<pthread_t> subThreads(clients*requests);  // Vector to store worker threads
+    int i = 0;
+    vector<CallData*> data;  // Temporary vector to store data of each line
+    CallData* callData;    
     
     while (shared_memory->finished < clients){
 
@@ -184,63 +184,50 @@ void parent(int clients, int files, int requests){
 
             
         if (shared_memory->temp_mem_used == 1){
-            int last_line = shared_memory->end_line;
-            int first_line = shared_memory->start_line;
-            int wanted_file = shared_memory->file_num;
-            char** temp_memory = shared_memory->temp_mem;
-            cout << "File " << wanted_file << "lines: " << first_line << last_line << endl;
+            // int last_line = shared_memory->end_line;
+            // int first_line = shared_memory->start_line;
+            // int wanted_file = shared_memory->file_num;
+            // char** temp_memory = shared_memory->temp_mem;
+            // cout << "File " << wanted_file << "lines: " << first_line << last_line << endl;
 
-            /////////////////////////
-            string sfilename = filenames[wanted_file];
-            const char* filename = sfilename.c_str(); 
+            callData = new CallData();  // Allocate memory 
+            
+            callData->last_line = shared_memory->end_line;
+            callData->first_line = shared_memory->start_line;
+            callData->wanted_file = shared_memory->file_num;
+            callData->temp_memory = shared_memory->temp_mem;
+            callData->mutex_s = mutex_same;
+            cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
+            data.push_back(callData);
 
-            FILE* fp = fopen(filename, "r");
-            if (fp == NULL){
-                printf("Could not open file %s", filename);
-                pthread_exit(NULL);
+///////////////////////////////////////////////////thread//////////////////////////////////////////////////////////////////////
+            
+            
+            if (pthread_create(&subThreads[i], NULL, threadFunction, (void*)data[i]) != 0) {
+                cerr << "Error creating sub thread " << i << endl;
+                return;
             }
-            
-            return_segment(fp, first_line, last_line, temp_memory);
-            fclose(fp);
 
-//             callData = new CallData();  // Allocate memory 
-            
-//             callData->last_line = shared_memory->end_line;
-//             callData->first_line = shared_memory->start_line;
-//             callData->wanted_file = shared_memory->file_num;
-//             callData->temp_memory = shared_memory->temp_mem;
-//             callData->mutex_s = mutex_same;
-//             cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
-//             data.push_back(callData);
-
-// ///////////////////////////////////////////////////thread//////////////////////////////////////////////////////////////////////
-            
-            
-//             if (pthread_create(&subThreads[i], NULL, threadFunction, (void*)data[i]) != 0) {
-//                 cerr << "Error creating sub thread " << i << endl;
-//                 return;
-//             }
-
-//             i++;
+            i++;
           
            // string sfilename = filenames[wanted_file];
-          cout << "vghkaaaaaaaaaaaaaaa"<<endl;
+           cout << "vghkaaaaaaaaaaaaaaa"<<endl;
 
          } 
         
-        if(sem_post(mutex_same) < 0){
-            perror("sem_post failed on parent");
-            exit(EXIT_FAILURE);
-        }
-                cout<<"dystuxws m "<<endl<<endl;
+        // if(sem_post(mutex_same) < 0){
+        //     perror("sem_post failed on parent");
+        //     exit(EXIT_FAILURE);
+        // }
+                //cout<<"dystuxws m "<<endl;
 
     }
 
 
     // Wait for sub threads to finish
-    // for (int i = 0; i < clients*requests; ++i) {
-    //     pthread_join(subThreads[i], NULL);
-    // }
+    for (int i = 0; i < clients*requests; ++i) {
+        pthread_join(subThreads[i], NULL);
+    }
     
     int status;
 

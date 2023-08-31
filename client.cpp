@@ -26,8 +26,8 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         // New segment
         int segment_lines = last_line - first_line +1;
         cout << i << "size of seg " << segment_lines << endl;
-        char** segment = (char**)malloc(segment_lines * sizeof(char*));
-        for (int i = 0 ; i < segment_lines; i++){
+        char** segment = (char**)malloc((segment_lines+1) * sizeof(char*));
+        for (int i = 1 ; i <= segment_lines; i++){
             segment[i] = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
         }
 
@@ -54,14 +54,14 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
             
         //execute//////////////////////////////////////////
 
-        for (int i = 0 ; i < segment_lines; i++){
-            cout << i ;//<< " " << segment[i] << endl;
+        for (int i = 1 ; i <= segment_lines; i++){
+            cout << i /*<< " " << segment[i]*/ << endl;
         }  
             
         shared_memory->temp_mem_used = 0;
 
         // free temp segment
-        for (int i = 0 ; i < segment_lines; i++){
+        for (int i = 1; i <= segment_lines; i++){
             free(segment[i]);
         }
         free(segment);

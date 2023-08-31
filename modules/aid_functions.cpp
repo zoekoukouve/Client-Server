@@ -103,15 +103,15 @@ void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory)
 		} else if (linecounter < first_line){
             // do nothing
         } else{
-            cout << linecounter-first_line;
-            cout << lii;
+            // cout << linecounter-first_line;
+            // cout << lii;
 
             fflush(stdout);
             
            
-            strncpy(temp_memory[linecounter - first_line], lii, MAX_LINE_SIZE - 1);
-            temp_memory[linecounter - first_line][MAX_LINE_SIZE - 1] = '\0';
-            return;
+            //strcpy(temp_memory[linecounter - first_line +1], lii);
+            // temp_memory[linecounter - first_line][MAX_LINE_SIZE - 1] = '\0';
+            // return;
             
         }
         
