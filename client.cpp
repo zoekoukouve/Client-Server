@@ -37,19 +37,11 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         tempSharedMemory segment;
 
         // Create memory segment
-        // if((shmid = shmget((key_t)getpid(), sizeof(tempSharedMemory), (S_IRUSR|S_IWUSR))) == -1){  // getpid() is used to create different mem segments
-        //     semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
-        //     cout << "ddddddddddddddddddddddddddick"<<endl;
-        //     perror("Failed to create shared memory segment");
-        //     return;
-        // }
         if ((shmid = shmget((key_t)getpid(), sizeof(tempSharedMemory), (IPC_CREAT | 0666))) == -1) {
-        // Handle errors and clean up
             semaph_close(mutex_writer, mutex_finished, mutex_diff, mutex_same);
             perror("Failed to create shared memory segment in client");
             return ;
         }
-
 
         // Attach memory segment
         if((segment = (tempSharedMemory)shmat(shmid, NULL, 0)) == (void*)-1){
