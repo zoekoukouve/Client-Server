@@ -19,4 +19,4 @@ void semaph_close_unlink(void*, void*, void*, void*);
 void semaph_close(void*, void*, void*, void*);
 
 
-void return_segment(FILE*, int, int, char**);
+void return_segment(FILE*, int, int, char**, int);

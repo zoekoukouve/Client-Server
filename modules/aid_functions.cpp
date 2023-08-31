@@ -1,5 +1,9 @@
 #include "aid_functions.h"
 #include <cstring>
+#include "shared_memory.h"
+
+#include <sys/ipc.h> //shared memory
+#include <sys/shm.h>
 
 using namespace std;  
 
@@ -91,12 +95,28 @@ void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, vo
 }
 
 
-void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory){
+void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory,int key){
    
     char line[MAX_LINE_SIZE]; 
     int linecounter = 0;
     char* lii;
-    
+
+    // Create memory segment
+    int shmid;
+    tempSharedMemory shared_mem;
+    if((shmid = shmget(key, sizeof(tempSharedMemory), (IPC_CREAT | 0666))) == -1){  // getpid() is used to create different mem segments
+        perror("Failed to create shared memory segment in parent");
+        return;
+    }
+
+    // Attach memory segment
+    if((shared_mem = (tempSharedMemory)shmat(shmid, NULL, 0)) == (void*)-1){
+        perror("Failed to attach memory segment");
+        return;
+    }
+
+    //char*** segm = malloc((segments_amount + 1)* sizeof(char**)); 
+    shared_mem->segment = (char**)malloc((12)* sizeof(char*));
     while ((lii=fgets(line, MAX_LINE_SIZE, fp)) != NULL) {
 		if (linecounter == last_line + 1) {
 			return;
@@ -108,8 +128,10 @@ void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory)
 
             fflush(stdout);
             
-           
-            //strcpy(temp_memory[linecounter - first_line +1], lii);
+
+            shared_mem->segment[linecounter - first_line +1] = (char*)malloc(MAX_LINE_SIZE*sizeof(char));
+            strcpy(shared_mem->segment[linecounter - first_line +1],lii);
+            //strcpy(segment->segment[linecounter - first_line +1], lii);
             // temp_memory[linecounter - first_line][MAX_LINE_SIZE - 1] = '\0';
             // return;
             
@@ -117,4 +139,11 @@ void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory)
         
 		linecounter++;
 	}
+
+    // Detach shared memory
+    if(shmdt((void*)shared_mem) == -1){
+        perror("Failed to destroy shared memory segment");
+        return;
+    }
+
 }

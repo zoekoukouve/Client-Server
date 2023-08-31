@@ -22,6 +22,7 @@ struct CallData {    // Struct that stores data of each line
     int wanted_file;
     char** temp_memory;
     void* mutex_s;
+    pid_t key;
 };
 
 vector<string> filenames;
@@ -29,14 +30,15 @@ vector<string> filenames;
 void child(int, int, int, sharedMemory, void*, void*, void*, void*);
 
 void* threadFunction(void* arg) {
-    cout << "dhiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
+    //cout << "dhiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
     
     // Extract the data from the argument
     CallData* lineData = (CallData*)arg;
     int first_line = lineData->first_line;
     int last_line = lineData->last_line;
     int wanted_file =  lineData->wanted_file;
-    char** temp_memory=  lineData->temp_memory;
+    char** temp_memory =  lineData->temp_memory;
+    pid_t key =  lineData->key;
 
     string sfilename = filenames[wanted_file];
     const char* filename = sfilename.c_str(); 
@@ -47,14 +49,14 @@ void* threadFunction(void* arg) {
         pthread_exit(NULL);
     }
     
-    return_segment(fp, first_line, last_line, temp_memory);
+    return_segment(fp, first_line, last_line, temp_memory, (int)key);
     fclose(fp);
 
     if(sem_post((sem_t*)lineData->mutex_s) < 0){
         perror("sem_post failed on parent");
         exit(EXIT_FAILURE);
     }
-                cout<<"dystuxws m "<<endl;
+                //cout<<"dystuxws m "<<endl;
     pthread_exit(NULL);
 }
 
@@ -96,7 +98,7 @@ void parent(int clients, int files, int requests){
     // Create memory segment
     if((shmid = shmget(IPC_PRIVATE, sizeof(sharedMemory), (S_IRUSR|S_IWUSR))) == -1){
         semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
-        perror("Failed to create shared memory segment");
+        perror("Failed to create shared main memory segment");
         return;
     }
 
@@ -196,6 +198,7 @@ void parent(int clients, int files, int requests){
             callData->first_line = shared_memory->start_line;
             callData->wanted_file = shared_memory->file_num;
             callData->temp_memory = shared_memory->temp_mem;
+            callData->key = shared_memory->temp_shared_mem_key;
             callData->mutex_s = mutex_same;
             cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
             data.push_back(callData);
