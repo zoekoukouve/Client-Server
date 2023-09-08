@@ -5,7 +5,7 @@
 #include <string>
 #include <cstring>
 #include <limits.h>
-#include <sys/ipc.h>
+#include <sys/ipc.h> //shared memory
 #include <sys/shm.h>
 #include <pthread.h> //threads
 

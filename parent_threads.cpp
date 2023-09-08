@@ -1,6 +1,5 @@
 // #include "shared_memory.h"
 #include "aid_functions.h"
-#include "shared_memory.h"
 #include <vector>
 #include <string>
 #include <cstring>
@@ -23,6 +22,7 @@ struct CallData {    // Struct that stores data of each line
     char** temp_memory;
     void* mutex_s;
     pid_t key;
+    tempSharedMemory shared_mem;
 };
 
 vector<string> filenames;
@@ -39,6 +39,7 @@ void* threadFunction(void* arg) {
     int wanted_file =  lineData->wanted_file;
     char** temp_memory =  lineData->temp_memory;
     pid_t key =  lineData->key;
+    tempSharedMemory shared_mem = lineData->shared_mem;
 
     string sfilename = filenames[wanted_file];
     const char* filename = sfilename.c_str(); 
@@ -49,14 +50,15 @@ void* threadFunction(void* arg) {
         pthread_exit(NULL);
     }
     
-    return_segment(fp, first_line, last_line, temp_memory, (int)key);
+    return_segment(fp, first_line, last_line, temp_memory, (int)key, shared_mem);
     fclose(fp);
+
 
     if(sem_post((sem_t*)lineData->mutex_s) < 0){
         perror("sem_post failed on parent");
         exit(EXIT_FAILURE);
     }
-                //cout<<"dystuxws m "<<endl;
+    cout<<"dystuxws m "<<endl;
     pthread_exit(NULL);
 }
 
@@ -96,7 +98,7 @@ void parent(int clients, int files, int requests){
     sharedMemory shared_memory;
 
     // Create memory segment
-    if((shmid = shmget(IPC_PRIVATE, sizeof(sharedMemory), (S_IRUSR|S_IWUSR))) == -1){
+    if((shmid = shmget(IPC_PRIVATE, sizeof(shared_memory), (S_IRUSR|S_IWUSR))) == -1){
         semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
         perror("Failed to create shared main memory segment");
         return;
@@ -204,7 +206,21 @@ void parent(int clients, int files, int requests){
             data.push_back(callData);
 
 ///////////////////////////////////////////////////thread//////////////////////////////////////////////////////////////////////
-            
+            int shmid = shmget(shared_memory->temp_shared_mem_key, sizeof(temp_shared_memory), 0666 | IPC_CREAT );
+            if (shmid == -1) {
+                perror("Failed to get shared memory segment");
+                return ;
+            }
+
+    // Attach the shared memory segment to the process's address space
+            tempSharedMemory shared_mem = (tempSharedMemory)shmat(shmid, NULL, 0);
+            if (shared_mem == reinterpret_cast<temp_shared_memory*>(-1)) {
+                perror("Failed to attach shared memory in server");
+                return;
+            }
+            cout << endl << shared_memory->temp_shared_mem_key << " "<< shared_mem ->k << endl;
+
+            callData->shared_mem = shared_mem;
             
             if (pthread_create(&subThreads[i], NULL, threadFunction, (void*)data[i]) != 0) {
                 cerr << "Error creating sub thread " << i << endl;
@@ -226,6 +242,7 @@ void parent(int clients, int files, int requests){
 
     }
 
+    cout << endl <<" alelouiaaaaaaaaaaaaa tsirp"<< endl;
 
     // Wait for sub threads to finish
     for (int i = 0; i < clients*requests; ++i) {
@@ -234,10 +251,15 @@ void parent(int clients, int files, int requests){
     
     int status;
 
+    cout << endl <<" alelouiaaaaaaaaaaaaa"<< endl;
+     fflush(stdout);
+
     // Collect children that have finished
     for(int i = 0; i < clients; i++){
         wait(&status);
     }
+
+    cout << " alelouiaaaaaaaaaaaaa";
 
     // Detach shared memory
     if(shmdt((void*)shared_memory) == -1){
@@ -251,17 +273,6 @@ void parent(int clients, int files, int requests){
 
 int main(int argc, char** argv){
 
-    // // open a file
-    // char* filename;
-    // //filename = argv[1];
-    // FILE* fp = fopen(filename, "r");
-    // if (fp == NULL){
-    //     printf("Could not open file %s", filename);
-    //     return -1;
-    // }
-    // fclose(fp);
-
-
     int N = atoi(argv[1]);
     int M = atoi(argv[2]);
     int L = atoi(argv[3]);
@@ -272,8 +283,6 @@ int main(int argc, char** argv){
         filenames.push_back(argv[i + 4]);
     }
 
-    // sem_t* mutex_writer, *mutex_finished, *mutex_diff, *mutex_same;
-    // semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
     sem_unlink("mutex_writer");
     sem_unlink("mutex_finished");
     sem_unlink("mutex_diff");

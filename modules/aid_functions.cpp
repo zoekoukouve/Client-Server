@@ -1,6 +1,5 @@
 #include "aid_functions.h"
 #include <cstring>
-#include "shared_memory.h"
 
 #include <sys/ipc.h> //shared memory
 #include <sys/shm.h>
@@ -95,52 +94,55 @@ void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, vo
 }
 
 
-void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory,int key){
+void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory,int shm_key, tempSharedMemory shared_mem){
    
     char line[MAX_LINE_SIZE]; 
     int linecounter = 0;
     char* lii;
+    
+    // Allocate memory for the segment->segment array using new
+    //  int segment_lines = last_line - first_line +1;
+    // shared_mem->segment = new char*[segment_lines + 1]; // +1 to account for 0-based indexing
+    // for (int i = 1; i <= segment_lines; i++) {
+    //     shared_mem->segment[i] = new char[MAX_LINE_SIZE];
+    // }
 
-    // Create memory segment
-    int shmid;
-    tempSharedMemory shared_mem;
-    if((shmid = shmget(key, sizeof(tempSharedMemory), (IPC_CREAT | 0666))) == -1){  // getpid() is used to create different mem segments
-        perror("Failed to create shared memory segment in parent");
-        return;
-    }
-
-    // Attach memory segment
-    if((shared_mem = (tempSharedMemory)shmat(shmid, NULL, 0)) == (void*)-1){
-        perror("Failed to attach memory segment");
-        return;
-    }
-
-    //char*** segm = malloc((segments_amount + 1)* sizeof(char**)); 
-    shared_mem->segment = (char**)malloc((12)* sizeof(char*));
     while ((lii=fgets(line, MAX_LINE_SIZE, fp)) != NULL) {
-		if (linecounter == last_line + 1) {
-			return;
+        //cout<<"aaaaaaaaaaaaaaaaaa"<<endl;
+		if (linecounter > last_line) {
+            // Detach shared memory
+            if(shmdt((void*)shared_mem) == -1){
+                perror("Failed to destroy shared memory segment");
+                return;
+            }
+            cout<<"efygaaaaaaaaaaaaaaaaaaaaa"<<endl;
+            fflush(stdout);
+            return;
 		} else if (linecounter < first_line){
             // do nothing
         } else{
-            // cout << linecounter-first_line;
-            // cout << lii;
+            cout << linecounter - first_line +1;
+
+            shared_mem->sample[linecounter-first_line+1]=linecounter;
+            //cout << "re mlka";
 
             fflush(stdout);
-            
 
-            shared_mem->segment[linecounter - first_line +1] = (char*)malloc(MAX_LINE_SIZE*sizeof(char));
             strcpy(shared_mem->segment[linecounter - first_line +1],lii);
-            //strcpy(segment->segment[linecounter - first_line +1], lii);
-            // temp_memory[linecounter - first_line][MAX_LINE_SIZE - 1] = '\0';
-            // return;
+            cout << shared_mem->segment[linecounter - first_line +1];
+            fflush(stdout);
+           
+           
             
         }
         
 		linecounter++;
+       // cout << linecounter <<"zoeeee" << last_line << endl;
+        fflush(stdout);
 	}
-
-    // Detach shared memory
+       
+    
+    //Detach shared memory
     if(shmdt((void*)shared_mem) == -1){
         perror("Failed to destroy shared memory segment");
         return;

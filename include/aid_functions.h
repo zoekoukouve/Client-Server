@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "shared_memory.h"
+
 
 #define SEM_PERMS (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)
 
@@ -19,4 +21,4 @@ void semaph_close_unlink(void*, void*, void*, void*);
 void semaph_close(void*, void*, void*, void*);
 
 
-void return_segment(FILE*, int, int, char**, int);
+void return_segment(FILE*, int, int, char**, int, tempSharedMemory);
