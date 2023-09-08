@@ -23,4 +23,5 @@ void semaph_close(void*, void*, void*, int , char** , sem_t**);
 // Close semophores on clients
 void semaph_close_client(void*, void* , void* , void*);
 
-void return_segment(FILE*, int, int, char**, int, tempSharedMemory);
+// Returns the requested segment in the selected temporary memory
+void return_segment(FILE*, int, int, int, tempSharedMemory);

@@ -61,7 +61,7 @@ void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_d
     return;
 }
 
-// Close sempohores
+// Close semophores
 void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names, sem_t** semaph){
     
    
@@ -99,7 +99,7 @@ void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, in
     return;
 }
 
-
+// Close semophores in client
 void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
     
    
@@ -134,7 +134,7 @@ void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_d
     return;
 }
 
-void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory,int shm_key, tempSharedMemory shared_mem){
+void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSharedMemory shared_mem){
    
     char line[MAX_LINE_SIZE]; 
     int linecounter = 0;
@@ -171,9 +171,7 @@ void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory,
             strcpy(shared_mem->segment[linecounter - first_line +1],lii);
             cout << shared_mem->segment[linecounter - first_line +1];
             fflush(stdout);
-           
-           
-            
+  
         }
         
 		linecounter++;
