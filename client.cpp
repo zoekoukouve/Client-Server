@@ -1,6 +1,7 @@
 #include "aid_functions.h"
 #include <cstdlib>   // Include this header for srand and rand functions
 #include <ctime>     // Include this header for time function
+#include <sys/time.h>
 
 #include <sys/ipc.h> //shared memory
 #include <sys/shm.h>
@@ -11,8 +12,14 @@ using namespace std;
 
 void child(int clients, int requests, int files_amount, sharedMemory shared_memory, void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
 
-    // struct timeval request;
-    // struct timeval reply;
+    // Requests time
+    struct timeval request;
+    struct timeval reply;
+
+    int returned_lines = 0;                 // Counts the returned lines
+    int *files = new int[files_amount];     // Usefull to find used files
+    for (int i = 0; i < files_amount; i++)
+        files[i] = 0;
     
     // first request
     srand(time(NULL) + getpid()); // Randomize seed
@@ -21,21 +28,20 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
     for(int i = 0; i < requests; i++){
         // Wanted lines
         int file = rand()%files_amount;
+        files[file]++;
         int first_line = rand()%LINES;
         int last_line = rand()%(LINES-first_line+1) + first_line;
 
         // New segment
         int segment_lines = last_line - first_line +1;
+        returned_lines += segment_lines;
         // cout << i << "size of seg " << segment_lines << endl;
         // char** segment = (char**)malloc((segment_lines+1) * sizeof(char*));
         // for (int i = 1 ; i <= segment_lines; i++){
         //     segment[i] = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
         // }
 
-        // int shmid;
-        // tempSharedMemory segment;
-        key_t shm_key = (key_t)getpid(); // Replace 12345 with your chosen integer
-
+        key_t shm_key = (key_t)getpid(); // Create a unique memory for each client
         // Create or open the shared memory segment
        
         int shmid = shmget(shm_key, sizeof(temp_shared_memory), 0666 | IPC_CREAT );
@@ -51,31 +57,6 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
             return;
         }
 
-        // // Create memory segment
-        // if ((shmid = shmget((key_t)getpid(), sizeof(tempSharedMemory), (IPC_CREAT | 0666))) == -1) {
-        //     semaph_close(mutex_writer, mutex_finished, mutex_diff, mutex_same);
-        //     perror("Failed to create shared memory segment in client");
-        //     return ;
-        // }
-
-        // // Attach memory segment
-        // if((segment = (tempSharedMemory)shmat(shmid, NULL, 0)) == (void*)-1){
-        //     semaph_close(mutex_writer, mutex_finished, mutex_diff, mutex_same);
-        //     perror("Failed to attach memory segment in client");
-        //     return;
-        // }
-
-        // segment->segment = (char**)malloc((1 + segment_lines)* sizeof(char*));
-        // for (int i = 1; i <= segment_lines; i++){
-        //     segment->segment[i] = (char*)malloc(MAX_LINE_SIZE*sizeof(char));;
-        // }
-         // Allocate memory for segment->segment
-        // segment->segment = new char*[segment_lines + 1]; // +1 to account for 0-based indexing
-
-        // for (int i = 1; i <= segment_lines; i++) {
-        //     // Allocate memory for each line
-        //     segment->segment[i] = new char[MAX_LINE_SIZE];
-        // }
 
         if(sem_wait((sem_t*)mutex_writer) < 0){
             perror("sem_wait failed on child, mutex_writer");
@@ -88,11 +69,11 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         //     segment->segment[i] = new char[MAX_LINE_SIZE];
         // }
 
+        gettimeofday(&request, NULL);
 
         shared_memory->file_num = file;
         shared_memory->start_line = first_line;
         shared_memory->end_line = last_line;
-        shared_memory->temp_mem = NULL;
         shared_memory->mutex_s = mutex_same;
         shared_memory->temp_shared_mem_key = shm_key;
         shared_memory->temp_mem_used = 1;
@@ -107,7 +88,9 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
             perror("sem_wait failed on child, mutex_same");
             exit(EXIT_FAILURE);
         }
-            
+
+        gettimeofday(&reply, NULL);   
+        //fprintf(writefile,"request time:%ld sec %ld usec  reply time:%ld sec %ld usec  <%d,%d:%d> \n",request.tv_sec, request.tv_usec, reply.tv_sec, reply.tv_usec, file, first_line, last_line);     // Record
 
         //execute//////////////////////////////////////////
 
@@ -184,6 +167,14 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
 
     cout <<endl <<" oxi allo paidiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
     fflush(stdout);
+
+    int used_files = 0;
+    for (int i = 0; i < files_amount; i++){
+        if (files[i] > 0)
+            used_files++;
+    }
+    delete[] files;
+    cout << "From that client used files " << used_files << " returned lines " << returned_lines << endl;
 
     return;
 }
