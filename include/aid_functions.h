@@ -15,10 +15,12 @@
 
 
 // Close and unlink semophores
-void semaph_close_unlink(void*, void*, void*, void*);
+void semaph_close_unlink(void*, void*, void*, int , char** , sem_t**);
 
-// Close sempohores
-void semaph_close(void*, void*, void*, void*);
+// Close semophores
+void semaph_close(void*, void*, void*, int , char** , sem_t**);
 
+// Close semophores on clients
+void semaph_close_client(void*, void* , void* , void*);
 
 void return_segment(FILE*, int, int, char**, int, tempSharedMemory);

@@ -93,6 +93,7 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         shared_memory->start_line = first_line;
         shared_memory->end_line = last_line;
         shared_memory->temp_mem = NULL;
+        shared_memory->mutex_s = mutex_same;
         shared_memory->temp_shared_mem_key = shm_key;
         shared_memory->temp_mem_used = 1;
         segment->k = shmid;
@@ -107,10 +108,11 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
             exit(EXIT_FAILURE);
         }
             
+
         //execute//////////////////////////////////////////
 
         for (int i = 1; i <= segment_lines; i++){ 
-            cout << i << "  " << segment->sample[i] << segment->segment[i]<<endl;//;
+            cout << i << "  " << segment->sample[i] << "  " << segment->segment[i]<<endl;//;
             fflush(stdout);
         }  
             
@@ -137,21 +139,21 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         // delete[] segment->segment;
         
         if (shmdt(segment) == -1) {
-            semaph_close(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+            semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
             perror("Failed to detach shared memory");
             return;
         }
 
         // Delete the shared memory segment
         if (shmctl(shmid, IPC_RMID, NULL) == -1) {
-            semaph_close(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+            semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
             perror("Failed to delete shared memory segment");
             return;
         }
 
 
         if(sem_post((sem_t*)mutex_writer) < 0){
-            semaph_close(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+            semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
             perror("sem_post failed on child, semaph[wanted_seg]");
             exit(EXIT_FAILURE);
         }
@@ -178,7 +180,7 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
     }
 
     // Close semaphores used by this child 
-    semaph_close(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+    semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
 
     cout <<endl <<" oxi allo paidiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
     fflush(stdout);

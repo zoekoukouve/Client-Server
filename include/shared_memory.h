@@ -14,6 +14,7 @@ struct shared_memory{
     int start_line;
     int end_line;
     int temp_mem_used;
+    void* mutex_s;
     //int wanted_segment_num;
     char** temp_mem;   // Pointer to desired temporary shared memory
     int temp_shared_mem_key;

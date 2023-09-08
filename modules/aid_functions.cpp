@@ -7,7 +7,7 @@
 using namespace std;  
 
 // Close and unlink semophores
-void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
+void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names, sem_t** semaph){
      
     if (mutex_writer != NULL){
         if(sem_close((sem_t*)mutex_writer) < 0){
@@ -42,24 +42,65 @@ void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_d
         } 
     }
 
-    if (mutex_same != NULL){
-        if(sem_close((sem_t*)mutex_same) < 0){
-            perror("sem_close(mutex_same) failed!");
-            exit(EXIT_FAILURE);
+   if (semaph != NULL){
+        for (int i = 1; i <= segments_amount; i++){
+            if(sem_close(semaph[i]) < 0){
+                perror("sem_close() failed");
+                exit(EXIT_FAILURE);
+            }
+            if(sem_unlink(sem_names[i]) < 0){
+                perror("sem_unlink() failed");
+                exit(EXIT_FAILURE);
+            }
+            free(sem_names[i]);
         }
-        if(sem_unlink("mutex_same") < 0){
-            perror("sem_unlink(mutex_same) failed");
-            exit(EXIT_FAILURE);
-        }
+        free(sem_names);
+        free(semaph);   
     }
-
-   
 
     return;
 }
 
 // Close sempohores
-void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
+void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names, sem_t** semaph){
+    
+   
+    if (mutex_writer != NULL){
+        if(sem_close((sem_t*)mutex_writer) < 0){
+            perror("sem_close(mutex_writer) failed!");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (mutex_finished != NULL){
+        if(sem_close((sem_t*)mutex_finished) < 0){
+            perror("sem_close(mutex_finished) failed on child");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (mutex_diff != NULL){
+        if(sem_close((sem_t*)mutex_diff) < 0){
+            perror("sem_close(mutex_diff) failed!");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (semaph != NULL){
+        for (int i = 1; i <= segments_amount; i++){
+            if(sem_close(semaph[i]) < 0){
+                perror("sem_close() failed");
+                exit(EXIT_FAILURE);
+            }
+        }
+        free(semaph);   
+    }
+
+    return;
+}
+
+
+void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
     
    
     if (mutex_writer != NULL){
@@ -92,7 +133,6 @@ void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, vo
 
     return;
 }
-
 
 void return_segment(FILE* fp, int first_line, int last_line, char** temp_memory,int shm_key, tempSharedMemory shared_mem){
    

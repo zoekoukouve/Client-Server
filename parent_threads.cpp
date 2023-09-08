@@ -74,23 +74,39 @@ void parent(int clients, int files, int requests){
 
     sem_t* mutex_finished = sem_open("mutex_finished", O_CREAT | O_EXCL, SEM_PERMS, INITIAL_VALUE);
     if(mutex_finished == SEM_FAILED){
-        semaph_close_unlink(mutex_writer, NULL, NULL, NULL); // Close and unlink already created semophores           
+        semaph_close_unlink(mutex_writer, NULL, NULL, clients, NULL, NULL); // Close and unlink already created semophores           
         perror("sem_open(mutex_finished) failed on parent");
         exit(EXIT_FAILURE);
     } 
     
     sem_t* mutex_diff = sem_open("mutex_diff", O_CREAT | O_EXCL, SEM_PERMS, 0);
     if(mutex_diff == SEM_FAILED){
-        semaph_close_unlink(mutex_writer, mutex_finished, NULL, NULL); // Close and unlink already created semophores           
+        semaph_close_unlink(mutex_writer, mutex_finished, NULL, clients, NULL, NULL); // Close and unlink already created semophores           
         perror("sem_open(mutex_diff) failed on parent");
         exit(EXIT_FAILURE);
     }
 
-    sem_t* mutex_same = sem_open("mutex_same", O_CREAT | O_EXCL, SEM_PERMS, 0);
-    if(mutex_same == SEM_FAILED){
-        semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, NULL); // Close and unlink already created semophores           
-        perror("sem_open(mutex_same) failed on parent");
-        exit(EXIT_FAILURE);
+
+    // Array of semaphores, one for each client
+    sem_t** semaph = new sem_t*[clients+1];    
+    char** sem_names = new char*[clients + 1];
+    for (int i = 1; i <=  clients; i++){
+        sem_names[i] = new char[15];    // Keeps the name of semophore
+        sprintf(sem_names[i], "semaph%d", i);
+        // char s[10] = "semaph";
+        // char c[10];
+        // sprintf(c, "%d", i);
+        // strcat(s, c);
+        
+        semaph[i] = sem_open(sem_names[i], O_CREAT | O_EXCL, SEM_PERMS, INITIAL_VALUE);    // Create semophore
+        
+
+        if(semaph[i] == SEM_FAILED){        // Close and unlink already created semophores and deallocate memory 
+            free(sem_names[i]);
+            semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, i-1, sem_names, semaph);
+            perror("sem_open(semaph) failed");
+            exit(EXIT_FAILURE);
+        }   
     }
 
 
@@ -99,14 +115,14 @@ void parent(int clients, int files, int requests){
 
     // Create memory segment
     if((shmid = shmget(IPC_PRIVATE, sizeof(shared_memory), (S_IRUSR|S_IWUSR))) == -1){
-        semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+        semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, clients, sem_names, semaph);
         perror("Failed to create shared main memory segment");
         return;
     }
 
     // Attach memory segment
     if((shared_memory = (sharedMemory)shmat(shmid, NULL, 0)) == (void*)-1){
-        semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+        semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, clients, sem_names, semaph);
         perror("Failed to attach memory segment");
         return;
     }
@@ -153,12 +169,12 @@ void parent(int clients, int files, int requests){
 
     for(int i = 0; i < clients; i++){
         if((pids[i] = fork()) < 0){ // Fork new process
-            semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+            semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, clients, sem_names, semaph);
             perror("Failed to create process");
             return;
         }
         if(pids[i] == 0){          // If it is child process
-            child(clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, mutex_same);
+            child(clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, semaph[i+1]);
             exit(0);
         }
     }
@@ -185,15 +201,9 @@ void parent(int clients, int files, int requests){
             perror("sem_wait failed on child, mutex_diff");
             exit(EXIT_FAILURE);
         }          
-
             
         if (shared_memory->temp_mem_used == 1){
-            // int last_line = shared_memory->end_line;
-            // int first_line = shared_memory->start_line;
-            // int wanted_file = shared_memory->file_num;
-            // char** temp_memory = shared_memory->temp_mem;
-            // cout << "File " << wanted_file << "lines: " << first_line << last_line << endl;
-
+           
             callData = new CallData();  // Allocate memory 
             
             callData->last_line = shared_memory->end_line;
@@ -201,7 +211,7 @@ void parent(int clients, int files, int requests){
             callData->wanted_file = shared_memory->file_num;
             callData->temp_memory = shared_memory->temp_mem;
             callData->key = shared_memory->temp_shared_mem_key;
-            callData->mutex_s = mutex_same;
+            callData->mutex_s = shared_memory->mutex_s;
             cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
             data.push_back(callData);
 
@@ -242,7 +252,7 @@ void parent(int clients, int files, int requests){
 
     }
 
-    cout << endl <<" alelouiaaaaaaaaaaaaa tsirp"<< endl;
+  //  cout << endl <<" alelouiaaaaaaaaaaaaa tsirp"<< endl;
 
     // Wait for sub threads to finish
     for (int i = 0; i < clients*requests; ++i) {
@@ -251,7 +261,7 @@ void parent(int clients, int files, int requests){
     
     int status;
 
-    cout << endl <<" alelouiaaaaaaaaaaaaa"<< endl;
+  //  cout << endl <<" alelouiaaaaaaaaaaaaa"<< endl;
      fflush(stdout);
 
     // Collect children that have finished
@@ -259,7 +269,7 @@ void parent(int clients, int files, int requests){
         wait(&status);
     }
 
-    cout << " alelouiaaaaaaaaaaaaa";
+    //cout << " alelouiaaaaaaaaaaaaa";
 
     // Detach shared memory
     if(shmdt((void*)shared_memory) == -1){
@@ -268,7 +278,7 @@ void parent(int clients, int files, int requests){
     }
 
     // Close and unlink semaphores
-    semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+    semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, clients, sem_names, semaph);
 }
 
 int main(int argc, char** argv){
@@ -281,6 +291,27 @@ int main(int argc, char** argv){
     
     for (int i = 0; i < M; i++) {
         filenames.push_back(argv[i + 4]);
+    }
+
+    if(sem_unlink("semaph1") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph2") < 0){
+            perror("sem_unlink(2) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph3") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph4") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph5") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
     }
 
     sem_unlink("mutex_writer");
