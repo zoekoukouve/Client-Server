@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void child(int clients, int requests, int files_amount, sharedMemory shared_memory, void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
+void child(FILE* writefile, int clients, int requests, int files_amount, sharedMemory shared_memory, void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
 
     // Requests time
     struct timeval request;
@@ -35,15 +35,10 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         // New segment
         int segment_lines = last_line - first_line +1;
         returned_lines += segment_lines;
-        // cout << i << "size of seg " << segment_lines << endl;
-        // char** segment = (char**)malloc((segment_lines+1) * sizeof(char*));
-        // for (int i = 1 ; i <= segment_lines; i++){
-        //     segment[i] = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
-        // }
 
         key_t shm_key = (key_t)getpid(); // Create a unique memory for each client
-        // Create or open the shared memory segment
        
+        // Create or open the shared memory segment 
         int shmid = shmget(shm_key, sizeof(temp_shared_memory), 0666 | IPC_CREAT );
         if (shmid == -1) {
             perror("Failed to create/open shared memory segment");
@@ -56,7 +51,6 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
             perror("Failed to attach shared memory in client");
             return;
         }
-
 
         if(sem_wait((sem_t*)mutex_writer) < 0){
             perror("sem_wait failed on child, mutex_writer");
@@ -89,20 +83,39 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
             exit(EXIT_FAILURE);
         }
 
+        // if(sem_post((sem_t*)mutex_writer) < 0){
+        //     semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+        //     perror("sem_post failed on child, semaph[wanted_seg]");
+        //     exit(EXIT_FAILURE);
+        // }
+
         gettimeofday(&reply, NULL);   
-        //fprintf(writefile,"request time:%ld sec %ld usec  reply time:%ld sec %ld usec  <%d,%d:%d> \n",request.tv_sec, request.tv_usec, reply.tv_sec, reply.tv_usec, file, first_line, last_line);     // Record
+        fprintf(writefile,"request time:%ld sec %ld usec  reply time:%ld sec %ld usec  <%d,%d:%d> \n",request.tv_sec, request.tv_usec, reply.tv_sec, reply.tv_usec, file, first_line, last_line);     // Record
 
         //execute//////////////////////////////////////////
 
         for (int i = 1; i <= segment_lines; i++){ 
             cout << i << "  " << segment->sample[i] << "  " << segment->segment[i]<<endl;//;
+            fprintf(writefile,"%d ", segment->sample[i]);     // Record
+
+            fflush(stdout);
+        }
+
+        fprintf(writefile,"\n");     // Record
+        
+        for (int i = 1; i <= segment_lines; i++){ 
+            cout << i << "  " << segment->sample[i] << "  " << segment->segment[i]<<endl;//;
+            fprintf(writefile,"%s", segment->segment[i]);     // Record
+
             fflush(stdout);
         }  
-            
-        shared_memory->temp_mem_used = 0;
 
-        cout << "hiiii";
-        fflush(stdout);
+        fprintf(writefile,"\n\n");
+            
+        // shared_memory->temp_mem_used = 0;
+
+      //  cout << "hiiii";
+        // fflush(stdout);
         // // free temp segment
         // for (int i = 1; i <= segment_lines; i++){
         //     free(segment->segment[i]);
@@ -113,7 +126,6 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         // free(segment->segment);
         // cout << "sin boy";
 
-        fflush(stdout);
 
             // Clean up memory allocated with new
         // for (int i = 1; i <= segment_lines; i++) {
@@ -135,11 +147,11 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
         }
 
 
-        if(sem_post((sem_t*)mutex_writer) < 0){
-            semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
-            perror("sem_post failed on child, semaph[wanted_seg]");
-            exit(EXIT_FAILURE);
-        }
+        // if(sem_post((sem_t*)mutex_writer) < 0){
+        //     semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+        //     perror("sem_post failed on child, semaph[wanted_seg]");
+        //     exit(EXIT_FAILURE);
+        // }
 
         
        usleep(20000);      // Wait 20 ms   /////////////////////////////////////////////////////////////////////////////////////////
@@ -165,7 +177,7 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
     // Close semaphores used by this child 
     semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
 
-    cout <<endl <<" oxi allo paidiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
+   // cout <<endl <<" oxi allo paidiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
     fflush(stdout);
 
     int used_files = 0;
@@ -174,7 +186,10 @@ void child(int clients, int requests, int files_amount, sharedMemory shared_memo
             used_files++;
     }
     delete[] files;
-    cout << "From that client used files " << used_files << " returned lines " << returned_lines << endl;
+    //cout << "From that client used files " << used_files << " returned lines " << returned_lines << endl;
+    fprintf(writefile,"Used files %d returned_lines %d average waiting time %d \n", used_files, returned_lines, 1); 
+
+    fclose(writefile);
 
     return;
 }

@@ -19,7 +19,6 @@ struct CallData {    // Struct that stores data of each line
     int last_line;
     int first_line;
     int wanted_file;
-    char** temp_memory;
     void* mutex_s;
     pid_t key;
     tempSharedMemory shared_mem;
@@ -27,7 +26,7 @@ struct CallData {    // Struct that stores data of each line
 
 vector<string> filenames;
 
-void child(int, int, int, sharedMemory, void*, void*, void*, void*);
+void child(FILE *,int, int, int, sharedMemory, void*, void*, void*, void*);
 
 void* threadFunction(void* arg) {
     //cout << "dhiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
@@ -37,7 +36,6 @@ void* threadFunction(void* arg) {
     int first_line = lineData->first_line;
     int last_line = lineData->last_line;
     int wanted_file =  lineData->wanted_file;
-    char** temp_memory =  lineData->temp_memory;
     pid_t key =  lineData->key;
     tempSharedMemory shared_mem = lineData->shared_mem;
 
@@ -50,7 +48,7 @@ void* threadFunction(void* arg) {
         pthread_exit(NULL);
     }
     
-    return_segment(fp, first_line, last_line, temp_memory, (int)key, shared_mem);
+    return_segment(fp, first_line, last_line, (int)key, shared_mem);
     fclose(fp);
 
 
@@ -93,13 +91,7 @@ void parent(int clients, int files, int requests){
     for (int i = 1; i <=  clients; i++){
         sem_names[i] = new char[15];    // Keeps the name of semophore
         sprintf(sem_names[i], "semaph%d", i);
-        // char s[10] = "semaph";
-        // char c[10];
-        // sprintf(c, "%d", i);
-        // strcat(s, c);
-        
-        semaph[i] = sem_open(sem_names[i], O_CREAT | O_EXCL, SEM_PERMS, INITIAL_VALUE);    // Create semophore
-        
+        semaph[i] = sem_open(sem_names[i], O_CREAT | O_EXCL, SEM_PERMS, 0);    // Create semophore
 
         if(semaph[i] == SEM_FAILED){        // Close and unlink already created semophores and deallocate memory 
             free(sem_names[i]);
@@ -127,7 +119,6 @@ void parent(int clients, int files, int requests){
         return;
     }
 
-  
     // Initialize fields of shared memory
     if(sem_wait(mutex_writer) < 0){            
         perror("sem_wait failed on parent, mutex_count");
@@ -137,7 +128,6 @@ void parent(int clients, int files, int requests){
     shared_memory->start_line = -1;
     shared_memory->end_line = -1;
     shared_memory->temp_mem_used = -1;
-    shared_memory->temp_mem = NULL;
 
     if(sem_post(mutex_writer) < 0){
         perror("sem_post failed on parent, mutex_writer");
@@ -156,7 +146,6 @@ void parent(int clients, int files, int requests){
     }
 
 
-
     // Initialize K kids
 
     // Does not allow to any child write to shared memory until all child are created
@@ -166,6 +155,8 @@ void parent(int clients, int files, int requests){
     }
     
     pid_t pids[clients];
+    FILE *writefile;
+	char filenames[17];
 
     for(int i = 0; i < clients; i++){
         if((pids[i] = fork()) < 0){ // Fork new process
@@ -174,16 +165,13 @@ void parent(int clients, int files, int requests){
             return;
         }
         if(pids[i] == 0){          // If it is child process
-            child(clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, semaph[i+1]);
+            sprintf(filenames, "file_%d", i);       // Record file
+	        writefile = fopen(filenames, "w");
+            child(writefile, clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, semaph[i+1]);
             exit(0);
         }
     }
 
-    // All child have been created
-    if(sem_post(mutex_writer) < 0){
-        perror("sem_post failed on parent");
-        exit(EXIT_FAILURE);
-    }
 
 
     // Services
@@ -192,6 +180,12 @@ void parent(int clients, int files, int requests){
     int i = 0;
     vector<CallData*> data;  // Temporary vector to store data of each line
     CallData* callData;    
+
+    // All child have been created
+    if(sem_post(mutex_writer) < 0){
+        perror("sem_post failed on parent");
+        exit(EXIT_FAILURE);
+    }
     
     while (shared_memory->finished < clients){
 
@@ -202,14 +196,13 @@ void parent(int clients, int files, int requests){
             exit(EXIT_FAILURE);
         }          
             
-        if (shared_memory->temp_mem_used == 1){
+        //if (shared_memory->temp_mem_used == 1){
            
             callData = new CallData();  // Allocate memory 
             
             callData->last_line = shared_memory->end_line;
             callData->first_line = shared_memory->start_line;
             callData->wanted_file = shared_memory->file_num;
-            callData->temp_memory = shared_memory->temp_mem;
             callData->key = shared_memory->temp_shared_mem_key;
             callData->mutex_s = shared_memory->mutex_s;
             cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
@@ -242,13 +235,17 @@ void parent(int clients, int files, int requests){
            // string sfilename = filenames[wanted_file];
            cout << "vghkaaaaaaaaaaaaaaa"<<endl;
 
-         } 
-        
-        // if(sem_post(mutex_same) < 0){
-        //     perror("sem_post failed on parent");
-        //     exit(EXIT_FAILURE);
-        // }
-                //cout<<"dystuxws m "<<endl;
+
+          // shared_memory->temp_mem_used = 0;
+
+
+           if(sem_post((sem_t*)mutex_writer) < 0){
+           // semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+                perror("sem_post failed on child, semaph[wanted_seg]");
+                exit(EXIT_FAILURE);
+            }
+
+        //}        
 
     }
 
@@ -262,14 +259,13 @@ void parent(int clients, int files, int requests){
     int status;
 
   //  cout << endl <<" alelouiaaaaaaaaaaaaa"<< endl;
-     fflush(stdout);
+   //  fflush(stdout);
 
     // Collect children that have finished
     for(int i = 0; i < clients; i++){
         wait(&status);
     }
 
-    //cout << " alelouiaaaaaaaaaaaaa";
 
     // Detach shared memory
     if(shmdt((void*)shared_memory) == -1){
@@ -313,7 +309,8 @@ int main(int argc, char** argv){
             perror("sem_unlink(3) failed");
            // exit(EXIT_FAILURE);
     }
-
+sem_unlink("semaph6");
+sem_unlink("semaph7");
     sem_unlink("mutex_writer");
     sem_unlink("mutex_finished");
     sem_unlink("mutex_diff");
