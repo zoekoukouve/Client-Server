@@ -210,14 +210,14 @@ void parent(int clients, int files, int requests){
             data.push_back(callData);
 
 ///////////////////////////////////////////////////thread//////////////////////////////////////////////////////////////////////
-            int shmid = shmget(shared_memory->temp_shared_mem_key, sizeof(temp_shared_memory), 0666 | IPC_CREAT );
-            if (shmid == -1) {
+            int shmid_s = shmget(shared_memory->temp_shared_mem_key, sizeof(temp_shared_memory), 0666 | IPC_CREAT );
+            if (shmid_s == -1) {
                 perror("Failed to get shared memory segment");
                 return ;
             }
 
     // Attach the shared memory segment to the process's address space
-            tempSharedMemory shared_mem = (tempSharedMemory)shmat(shmid, NULL, 0);
+            tempSharedMemory shared_mem = (tempSharedMemory)shmat(shmid_s, NULL, 0);
             if (shared_mem == reinterpret_cast<temp_shared_memory*>(-1)) {
                 perror("Failed to attach shared memory in server");
                 return;
@@ -277,6 +277,13 @@ void parent(int clients, int files, int requests){
     if(shmdt((void*)shared_memory) == -1){
        perror("Failed to destroy shared memory segment");
        return;
+    }
+
+    // Delete the shared memory 
+    if (shmctl(shmid, IPC_RMID, NULL) == -1) {
+        semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, clients, sem_names, semaph);
+        perror("Failed to delete shared memory segment");
+        return;
     }
 
     // Close and unlink semaphores

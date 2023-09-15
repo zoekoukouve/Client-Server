@@ -126,12 +126,6 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
         // free(segment->segment);
         // cout << "sin boy";
 
-
-            // Clean up memory allocated with new
-        // for (int i = 1; i <= segment_lines; i++) {
-        //     delete[] segment->segment[i];
-        // }
-        // delete[] segment->segment;
         
         if (shmdt(segment) == -1) {
             semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
@@ -188,6 +182,12 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
     delete[] files;
     //cout << "From that client used files " << used_files << " returned lines " << returned_lines << endl;
     fprintf(writefile,"Used files %d returned_lines %d average waiting time %d \n", used_files, returned_lines, 1); 
+
+    // Detach shared memory
+    if(shmdt((void*)shared_memory) == -1){
+       perror("Failed to destroy shared memory segment");
+       return;
+    }
 
     fclose(writefile);
 
