@@ -52,10 +52,10 @@ void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_d
                 perror("sem_unlink() failed");
                 exit(EXIT_FAILURE);
             }
-            free(sem_names[i]);
+            delete [] sem_names[i];
         }
-        free(sem_names);
-        free(semaph);   
+        delete[] sem_names;
+        delete[] semaph;   
     }
 
     return;
@@ -93,7 +93,7 @@ void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, in
                 exit(EXIT_FAILURE);
             }
         }
-        free(semaph);   
+        //free(semaph);   
     }
 
     return;
