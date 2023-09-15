@@ -94,7 +94,7 @@ void parent(int clients, int files, int requests){
         semaph[i] = sem_open(sem_names[i], O_CREAT | O_EXCL, SEM_PERMS, 0);    // Create semophore
 
         if(semaph[i] == SEM_FAILED){        // Close and unlink already created semophores and deallocate memory 
-            free(sem_names[i]);
+            delete[] sem_names[i];
             semaph_close_unlink(mutex_writer, mutex_finished, mutex_diff, i-1, sem_names, semaph);
             perror("sem_open(semaph) failed");
             exit(EXIT_FAILURE);
@@ -176,7 +176,8 @@ void parent(int clients, int files, int requests){
 
     // Services
 
-    vector<pthread_t> subThreads(clients*requests);  // Vector to store worker threads
+    //vector<pthread_t> subThreads(clients*requests);  // Vector to store worker threads
+    pthread_t subThreads[clients*requests];
     int i = 0;
     vector<CallData*> data;  // Temporary vector to store data of each line
     CallData* callData;    
@@ -255,6 +256,11 @@ void parent(int clients, int files, int requests){
     for (int i = 0; i < clients*requests; ++i) {
         pthread_join(subThreads[i], NULL);
     }
+
+    for (int i = 0; i < clients*requests; ++i) {
+        delete(data[i]);
+    }
+    
     
     int status;
 

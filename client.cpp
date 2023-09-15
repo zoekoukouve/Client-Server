@@ -94,17 +94,17 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
 
         //execute//////////////////////////////////////////
 
-        for (int i = 1; i <= segment_lines; i++){ 
-            cout << i << "  " << segment->sample[i] << "  " << segment->segment[i]<<endl;//;
-            fprintf(writefile,"%d ", segment->sample[i]);     // Record
+        // for (int i = 1; i <= segment_lines; i++){ 
+        //     cout << i << "  " << segment->sample[i] << "  " << segment->segment[i]<<endl;//;
+        //     fprintf(writefile,"%d ", segment->sample[i]);     // Record
 
-            fflush(stdout);
-        }
+        //     fflush(stdout);
+        // }
 
         fprintf(writefile,"\n");     // Record
         
         for (int i = 1; i <= segment_lines; i++){ 
-            cout << i << "  " << segment->sample[i] << "  " << segment->segment[i]<<endl;//;
+            cout << i << "  " << segment->sample[i] << "  " << segment->segment[i] << endl;//;
             fprintf(writefile,"%s", segment->segment[i]);     // Record
 
             fflush(stdout);
