@@ -17,6 +17,7 @@ struct shared_memory{
     void* mutex_s;
     int temp_shared_mem_key;
     int finished;
+    int sem_id;
 };
 
 typedef struct shared_memory* sharedMemory;

@@ -26,7 +26,7 @@ struct CallData {    // Struct that stores data of each line
 
 vector<string> filenames;
 
-void child(FILE *,int, int, int, sharedMemory, void*, void*, void*, void*);
+void child(FILE *,int, int, int, sharedMemory, void*, void*, void*, void*, int, double);
 
 void* threadFunction(void* arg) {
     //cout << "dhiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
@@ -167,7 +167,8 @@ void parent(int clients, int files, int requests){
         if(pids[i] == 0){          // If it is child process
             sprintf(filenames, "file_%d", i);       // Record file
 	        writefile = fopen(filenames, "w");
-            child(writefile, clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, semaph[i+1]);
+            child(writefile, clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, semaph[i+1], i+1, 0.5);
+            semaph_close_client(mutex_writer, mutex_finished, mutex_diff, clients, sem_names, semaph);
             exit(0);
         }
     }
@@ -187,9 +188,19 @@ void parent(int clients, int files, int requests){
         perror("sem_post failed on parent");
         exit(EXIT_FAILURE);
     }
+
+    if(sem_wait(mutex_finished) < 0){
+        perror("sem_post failed on parent");
+        exit(EXIT_FAILURE);
+    }
     
     while (shared_memory->finished < clients){
 
+        if(sem_post(mutex_finished) < 0){
+            perror("sem_post failed on parent");
+            exit(EXIT_FAILURE);
+        } 
+        
         cout<<"filarakia m "<<endl;
           
         if(sem_wait(mutex_diff) < 0){
@@ -205,7 +216,7 @@ void parent(int clients, int files, int requests){
             callData->first_line = shared_memory->start_line;
             callData->wanted_file = shared_memory->file_num;
             callData->key = shared_memory->temp_shared_mem_key;
-            callData->mutex_s = shared_memory->mutex_s;
+            callData->mutex_s = semaph[shared_memory->sem_id];
             cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
             data.push_back(callData);
 
@@ -222,7 +233,7 @@ void parent(int clients, int files, int requests){
                 perror("Failed to attach shared memory in server");
                 return;
             }
-            cout << endl << shared_memory->temp_shared_mem_key << " "<< shared_mem ->k << endl;
+            cout << endl << shared_memory->temp_shared_mem_key << " "<< shared_mem->k << endl;
 
             callData->shared_mem = shared_mem;
             
@@ -232,6 +243,12 @@ void parent(int clients, int files, int requests){
             }
 
             i++;
+
+            //Detach shared memory
+            // if(shmdt((void*)shared_mem) == -1){
+            //     perror("Failed to destroy shared memory segment");
+            //     return;
+            // }
           
            // string sfilename = filenames[wanted_file];
            cout << "vghkaaaaaaaaaaaaaaa"<<endl;
@@ -246,7 +263,11 @@ void parent(int clients, int files, int requests){
                 exit(EXIT_FAILURE);
             }
 
-        //}        
+        //}  
+        if(sem_wait(mutex_finished) < 0){
+            perror("sem_post failed on parent");
+            exit(EXIT_FAILURE);
+        }      
 
     }
 
@@ -258,7 +279,7 @@ void parent(int clients, int files, int requests){
     }
 
     for (int i = 0; i < clients*requests; ++i) {
-        delete(data[i]);
+        delete data[i];
     }
     
     
@@ -302,32 +323,35 @@ int main(int argc, char** argv){
         filenames.push_back(argv[i + 4]);
     }
 
-    if(sem_unlink("semaph1") < 0){
-            perror("sem_unlink(1) failed");
-          //  exit(EXIT_FAILURE);
-    }
-    if(sem_unlink("semaph2") < 0){
-            perror("sem_unlink(2) failed");
-           // exit(EXIT_FAILURE);
-    }
-    if(sem_unlink("semaph3") < 0){
-            perror("sem_unlink(3) failed");
-           // exit(EXIT_FAILURE);
-    }
-    if(sem_unlink("semaph4") < 0){
-            perror("sem_unlink(3) failed");
-           // exit(EXIT_FAILURE);
-    }
-    if(sem_unlink("semaph5") < 0){
-            perror("sem_unlink(3) failed");
-           // exit(EXIT_FAILURE);
-    }
-sem_unlink("semaph6");
-sem_unlink("semaph7");
-    sem_unlink("mutex_writer");
-    sem_unlink("mutex_finished");
-    sem_unlink("mutex_diff");
-    sem_unlink("mutex_same");    
+//     if(sem_unlink("semaph1") < 0){
+//             perror("sem_unlink(1) failed");
+//           //  exit(EXIT_FAILURE);
+//     }
+//     if(sem_unlink("semaph2") < 0){
+//             perror("sem_unlink(2) failed");
+//            // exit(EXIT_FAILURE);
+//     }
+//     if(sem_unlink("semaph3") < 0){
+//             perror("sem_unlink(3) failed");
+//            // exit(EXIT_FAILURE);
+//     }
+//     if(sem_unlink("semaph4") < 0){
+//             perror("sem_unlink(3) failed");
+//            // exit(EXIT_FAILURE);
+//     }
+//     if(sem_unlink("semaph5") < 0){
+//             perror("sem_unlink(3) failed");
+//            // exit(EXIT_FAILURE);
+//     }
+// sem_unlink("semaph6");
+// sem_unlink("semaph7");
+// sem_unlink("semaph8");
+// sem_unlink("semaph9");
+// sem_unlink("semaph10");
+//     sem_unlink("mutex_writer");
+//     sem_unlink("mutex_finished");
+//     sem_unlink("mutex_diff");
+//     sem_unlink("mutex_same");    
     parent(N, M, L);
 
 }

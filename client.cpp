@@ -2,7 +2,7 @@
 #include <cstdlib>   // Include this header for srand and rand functions
 #include <ctime>     // Include this header for time function
 #include <sys/time.h>
-
+#include <cmath>
 #include <sys/ipc.h> //shared memory
 #include <sys/shm.h>
 
@@ -10,16 +10,19 @@
 
 using namespace std;
 
-void child(FILE* writefile, int clients, int requests, int files_amount, sharedMemory shared_memory, void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
+void child(FILE* writefile, int clients, int requests, int files_amount, sharedMemory shared_memory, void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same, int id, double lamda){
 
     // Requests time
     struct timeval request;
     struct timeval reply;
+    double waiting = 0.0;
 
     int returned_lines = 0;                 // Counts the returned lines
     int *files = new int[files_amount];     // Usefull to find used files
     for (int i = 0; i < files_amount; i++)
         files[i] = 0;
+
+   
     
     // first request
     srand(time(NULL) + getpid()); // Randomize seed
@@ -68,9 +71,10 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
         shared_memory->file_num = file;
         shared_memory->start_line = first_line;
         shared_memory->end_line = last_line;
-        shared_memory->mutex_s = mutex_same;
+        shared_memory->mutex_s = (sem_t*)mutex_same;
         shared_memory->temp_shared_mem_key = shm_key;
         shared_memory->temp_mem_used = 1;
+        shared_memory->sem_id = id;
         segment->k = shmid;
                     
         if(sem_post((sem_t*)mutex_diff) < 0){   // Communucation parent - child
@@ -145,8 +149,11 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
         //     exit(EXIT_FAILURE);
         // }
 
-        
-       usleep(20000);      // Wait 20 ms   /////////////////////////////////////////////////////////////////////////////////////////
+        double w = 1.0 - exp(-lamda*i);
+        w = sqrt(w*w);                  // making sure that it is a positive number
+        waiting += w;
+        usleep(w);
+        //usleep(20000);      // Wait 20 ms   /////////////////////////////////////////////////////////////////////////////////////////
     }
 
           
@@ -179,7 +186,7 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
     }
     delete[] files;
     //cout << "From that client used files " << used_files << " returned lines " << returned_lines << endl;
-    fprintf(writefile,"Used files %d returned_lines %d average waiting time %d \n", used_files, returned_lines, 1); 
+    fprintf(writefile,"Used files %d returned_lines %d average waiting time %lf \n", used_files, returned_lines, waiting/requests); 
 
     // Detach shared memory
     if(shmdt((void*)shared_memory) == -1){

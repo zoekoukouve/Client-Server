@@ -18,10 +18,10 @@
 void semaph_close_unlink(void*, void*, void*, int , char** , sem_t**);
 
 // Close semophores
-void semaph_close(void*, void*, void*, int , char** , sem_t**);
+//void semaph_close(void*, void*, void*, int , char** , sem_t**);
 
 // Close semophores on clients
-void semaph_close_client(void*, void* , void* , void*);
+void semaph_close_client(void*, void*, void*, int , char** , sem_t**);
 
 // Returns the requested segment in the selected temporary memory
 void return_segment(FILE*, int, int, int, tempSharedMemory);
