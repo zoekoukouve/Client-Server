@@ -208,7 +208,7 @@ void parent(int clients, int files, int requests){
             exit(EXIT_FAILURE);
         }          
             
-        //if (shared_memory->temp_mem_used == 1){
+        if (shared_memory->temp_mem_used == 1){
            
             callData = new CallData();  // Allocate memory 
             
@@ -254,7 +254,7 @@ void parent(int clients, int files, int requests){
            cout << "vghkaaaaaaaaaaaaaaa"<<endl;
 
 
-          // shared_memory->temp_mem_used = 0;
+           shared_memory->temp_mem_used = 0;
 
 
            if(sem_post((sem_t*)mutex_writer) < 0){
@@ -263,13 +263,14 @@ void parent(int clients, int files, int requests){
                 exit(EXIT_FAILURE);
             }
 
-        //}  
+        }  
         if(sem_wait(mutex_finished) < 0){
             perror("sem_post failed on parent");
             exit(EXIT_FAILURE);
         }      
 
     }
+    cout << i << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"<<endl;
 
   //  cout << endl <<" alelouiaaaaaaaaaaaaa tsirp"<< endl;
 
