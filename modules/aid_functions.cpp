@@ -7,7 +7,7 @@
 using namespace std;  
 
 // Close and unlink semophores
-void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names, sem_t** semaph){
+void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names_r, sem_t** semaph_r, char** sem_names_w, sem_t** semaph_w){
      
     if (mutex_writer != NULL){
         if(sem_close((sem_t*)mutex_writer) < 0){
@@ -42,65 +42,45 @@ void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_d
         } 
     }
 
-   if (semaph != NULL){
+    if (semaph_r != NULL){
         for (int i = 1; i <= segments_amount; i++){
-            if(sem_close(semaph[i]) < 0){
+            if(sem_close(semaph_r[i]) < 0){
                 perror("sem_close() failed");
                 exit(EXIT_FAILURE);
             }
-            if(sem_unlink(sem_names[i]) < 0){
+            if(sem_unlink(sem_names_r[i]) < 0){
                 perror("sem_unlink() failed");
                 exit(EXIT_FAILURE);
             }
-            delete [] sem_names[i];
+            delete [] sem_names_r[i];
         }
-        delete[] sem_names;
-        delete[] semaph;   
+        delete[] sem_names_r;
+        delete[] semaph_r;   
     }
 
-    return;
-}
-
-// Close semophores
-void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names, sem_t** semaph){
-    
-   
-    if (mutex_writer != NULL){
-        if(sem_close((sem_t*)mutex_writer) < 0){
-            perror("sem_close(mutex_writer) failed!");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (mutex_finished != NULL){
-        if(sem_close((sem_t*)mutex_finished) < 0){
-            perror("sem_close(mutex_finished) failed on child");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (mutex_diff != NULL){
-        if(sem_close((sem_t*)mutex_diff) < 0){
-            perror("sem_close(mutex_diff) failed!");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (semaph != NULL){
+    if (semaph_w != NULL){
         for (int i = 1; i <= segments_amount; i++){
-            if(sem_close(semaph[i]) < 0){
+            if(sem_close(semaph_w[i]) < 0){
                 perror("sem_close() failed");
                 exit(EXIT_FAILURE);
             }
+            if(sem_unlink(sem_names_w[i]) < 0){
+                perror("sem_unlink() failed");
+                exit(EXIT_FAILURE);
+            }
+            delete [] sem_names_w[i];
         }
-        delete semaph;   
+        delete[] sem_names_w;
+        delete[] semaph_w;   
     }
 
     return;
 }
 
+
+
 // Close semophores in client
-void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names, sem_t** semaph){
+void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names_r, sem_t** semaph_r, char** sem_names_w, sem_t** semaph_w){
     
    
     if (mutex_writer != NULL){
@@ -131,25 +111,36 @@ void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_d
     //     }
     // }
 
-    if (semaph != NULL){
+    if (semaph_r != NULL){
         for (int i = 1; i <= segments_amount; i++){
-            if(sem_close(semaph[i]) < 0){
+            if(sem_close(semaph_r[i]) < 0){
                 perror("sem_close() failed");
                 exit(EXIT_FAILURE);
             }
-            delete [] sem_names[i];
+            delete [] sem_names_r[i];
         }
-        delete[] sem_names;
-        delete[] semaph;   
+        delete[] sem_names_r;
+        delete[] semaph_r;   
     }
 
+    if (semaph_w != NULL){
+        for (int i = 1; i <= segments_amount; i++){
+            if(sem_close(semaph_w[i]) < 0){
+                perror("sem_close() failed");
+                exit(EXIT_FAILURE);
+            }
+            delete [] sem_names_w[i];
+        }
+        delete[] sem_names_w;
+        delete[] semaph_w;   
+    }
 
     return;
 }
 
-void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSharedMemory shared_mem){
+void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSharedMemory shared_mem, void* mutex_reader, void* mutex_writer_s){
    
-    char line[MAX_LINE_SIZE]; 
+    char line[MAX_LINE_SIZE + 2]; 
     int linecounter = 0;
     char* lii;
     
@@ -174,20 +165,30 @@ void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSha
 		} else if (linecounter < first_line){
             // do nothing
         } else{
-            cout << linecounter - first_line +1;
+            //cout << linecounter - first_line +1;
             //cout << "re mlka";
 
-            fflush(stdout);
+            //fflush(stdout);
 
-            strcpy(shared_mem->segment[linecounter - first_line +1],lii);
-            cout << shared_mem->segment[linecounter - first_line +1];
-            fflush(stdout);
+            if(sem_wait((sem_t*)mutex_writer_s) < 0){
+                perror("sem_wait failed on child, mutex_writer_s");
+                exit(EXIT_FAILURE);
+            }
+
+            strcpy(shared_mem->segment,lii);
+
+            //fflush(stdout);
+            if(sem_post((sem_t*)mutex_reader) < 0){   // Communucation parent - child
+                perror("mutex_writer_s failed on child, mutex_reader");
+                exit(EXIT_FAILURE);
+            }
+            
+            //cout << shared_mem->segment[linecounter - first_line +1];
   
         }
         
 		linecounter++;
        // cout << linecounter <<"zoeeee" << last_line << endl;
-        fflush(stdout);
 	}
        
     
