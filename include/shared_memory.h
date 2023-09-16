@@ -4,7 +4,6 @@
 struct temp_shared_memory{
     char segment[LINES+1][MAX_LINE_SIZE+4];
     int k;
-    int sample[100];
 };
 
 typedef struct temp_shared_memory* tempSharedMemory;

@@ -108,7 +108,7 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
         fprintf(writefile,"\n");     // Record
         
         for (int i = 1; i <= segment_lines; i++){ 
-            cout << i << "  " << segment->sample[i] << "  " << segment->segment[i] << endl;//;
+            cout << i << "  " << segment->segment[i] << endl;//;
             fprintf(writefile,"%s", segment->segment[i]);     // Record
 
             fflush(stdout);
@@ -117,18 +117,6 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
         fprintf(writefile,"\n\n");
             
         // shared_memory->temp_mem_used = 0;
-
-      //  cout << "hiiii";
-        // fflush(stdout);
-        // // free temp segment
-        // for (int i = 1; i <= segment_lines; i++){
-        //     free(segment->segment[i]);
-        //     cout << i << "  " <<endl;//;<< segment->segment[i]<<endl;//;
-        //     fflush(stdout);
-        // }
-        // cout << "hiiii";
-        // free(segment->segment);
-        // cout << "sin boy";
 
         
         if (shmdt(segment) == -1) {

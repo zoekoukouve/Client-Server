@@ -175,8 +175,6 @@ void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSha
             // do nothing
         } else{
             cout << linecounter - first_line +1;
-
-            shared_mem->sample[linecounter-first_line+1]=linecounter;
             //cout << "re mlka";
 
             fflush(stdout);
