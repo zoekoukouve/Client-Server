@@ -128,14 +128,12 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
 
         
         if (shmdt(segment) == -1) {
-            semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
             perror("Failed to detach shared memory");
             return;
         }
 
         // Delete the shared memory segment
         if (shmctl(shmid, IPC_RMID, NULL) == -1) {
-            semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
             perror("Failed to delete shared memory segment");
             return;
         }
@@ -169,7 +167,7 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
     }
 
     // Close semaphores used by this child 
-    semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
+    //semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
 
    // cout <<endl <<" oxi allo paidiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
     fflush(stdout);

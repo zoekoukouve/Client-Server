@@ -93,14 +93,14 @@ void semaph_close(void* mutex_writer, void* mutex_finished, void* mutex_diff, in
                 exit(EXIT_FAILURE);
             }
         }
-        //free(semaph);   
+        delete semaph;   
     }
 
     return;
 }
 
 // Close semophores in client
-void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_diff, void* mutex_same){
+void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names, sem_t** semaph){
     
    
     if (mutex_writer != NULL){
@@ -124,12 +124,25 @@ void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_d
         }
     }
 
-    if (mutex_same != NULL){
-        if(sem_close((sem_t*)mutex_same) < 0){
-            perror("sem_close(mutex_same) failed!");
-            exit(EXIT_FAILURE);
+    // if (mutex_same != NULL){
+    //     if(sem_close((sem_t*)mutex_same) < 0){
+    //         perror("sem_close(mutex_same) failed!");
+    //         exit(EXIT_FAILURE);
+    //     }
+    // }
+
+    if (semaph != NULL){
+        for (int i = 1; i <= segments_amount; i++){
+            if(sem_close(semaph[i]) < 0){
+                perror("sem_close() failed");
+                exit(EXIT_FAILURE);
+            }
+            delete [] sem_names[i];
         }
+        delete[] sem_names;
+        delete[] semaph;   
     }
+
 
     return;
 }
