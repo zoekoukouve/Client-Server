@@ -12,7 +12,6 @@ struct shared_memory{
     int start_line;
     int end_line;
     int temp_mem_used;
-    void* mutex_s;
     int temp_shared_mem_key;
     int finished;
     int sem_id;

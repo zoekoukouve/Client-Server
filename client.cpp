@@ -71,7 +71,6 @@ void child(FILE* writefile, int clients, int requests, int files_amount, sharedM
         shared_memory->file_num = file;
         shared_memory->start_line = first_line;
         shared_memory->end_line = last_line;
-        shared_memory->mutex_s = (sem_t*)mutex_reader;
         shared_memory->temp_shared_mem_key = shm_key;
         shared_memory->temp_mem_used = 1;
         shared_memory->sem_id = id;

@@ -8,7 +8,6 @@
 #include <sys/wait.h>
 #include "shared_memory.h"
 
-
 #define SEM_PERMS (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)
 
 #define MAX_LINE_SIZE 65536 // 64KBytes
@@ -16,9 +15,6 @@
 
 // Close and unlink semophores
 void semaph_close_unlink(void*, void*, void*, int , char** , sem_t**, char** , sem_t**);
-
-// Close semophores
-//void semaph_close(void*, void*, void*, int , char** , sem_t**);
 
 // Close semophores on clients
 void semaph_close_client(void*, void*, void*, int , char** , sem_t**, char** , sem_t**);

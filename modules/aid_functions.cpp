@@ -143,19 +143,11 @@ void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSha
     char line[MAX_LINE_SIZE + 2]; 
     int linecounter = 0;
     char* lii;
-    
-    // Allocate memory for the segment->segment array using new
-    //  int segment_lines = last_line - first_line +1;
-    // shared_mem->segment = new char*[segment_lines + 1]; // +1 to account for 0-based indexing
-    // for (int i = 1; i <= segment_lines; i++) {
-    //     shared_mem->segment[i] = new char[MAX_LINE_SIZE];
-    // }
 
     while ((lii=fgets(line, MAX_LINE_SIZE, fp)) != NULL) {
-        //cout<<"aaaaaaaaaaaaaaaaaa"<<endl;
 		if (linecounter > last_line) {
             // Detach shared memory
-            if(shmdt((void*)shared_mem) == -1){
+            if(shmdt((void*)shared_mem) == -1){                         /////////////////////////////////////////////
                 perror("Failed to destroy shared memory segment");
                 return;
             }
@@ -176,6 +168,13 @@ void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSha
             }
 
             strcpy(shared_mem->segment,lii);
+
+            // if (linecounter == last_line){              ///////////////////////////////////////////////////
+            //     if(shmdt((void*)shared_mem) == -1){
+            //         perror("Failed to destroy shared memory segment");
+            //         return;
+            //     } 
+            // }
 
             //fflush(stdout);
             if(sem_post((sem_t*)mutex_reader) < 0){   // Communucation parent - child

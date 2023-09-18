@@ -338,36 +338,7 @@ int main(int argc, char** argv){
     for (int i = 0; i < M; i++) {
         filenames.push_back(argv[i + 4]);
     }
-
-//     if(sem_unlink("semaph1") < 0){
-//             perror("sem_unlink(1) failed");
-//           //  exit(EXIT_FAILURE);
-//     }
-//     if(sem_unlink("semaph2") < 0){
-//             perror("sem_unlink(2) failed");
-//            // exit(EXIT_FAILURE);
-//     }
-//     if(sem_unlink("semaph3") < 0){
-//             perror("sem_unlink(3) failed");
-//            // exit(EXIT_FAILURE);
-//     }
-//     if(sem_unlink("semaph4") < 0){
-//             perror("sem_unlink(3) failed");
-//            // exit(EXIT_FAILURE);
-//     }
-//     if(sem_unlink("semaph5") < 0){
-//             perror("sem_unlink(3) failed");
-//            // exit(EXIT_FAILURE);
-//     }
-// sem_unlink("semaph6");
-// sem_unlink("semaph7");
-// sem_unlink("semaph8");
-// sem_unlink("semaph9");
-// sem_unlink("semaph10");
-//     sem_unlink("mutex_writer");
-//     sem_unlink("mutex_finished");
-//     sem_unlink("mutex_diff");
-//     sem_unlink("mutex_same");    
+   
     parent(N, M, L);
 
 }
