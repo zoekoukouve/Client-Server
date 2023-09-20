@@ -1,0 +1,196 @@
+   if(sem_unlink("mutex_diff") < 0){
+            perror("sem_unlink(mutex_diff) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w1") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w2") < 0){
+            perror("sem_unlink(2) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w3") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w4") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w5") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w6") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w7") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w8") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w9") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w10") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w11") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w12") < 0){
+            perror("sem_unlink(12) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w13") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w14") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w15") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w16") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w17") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w18") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_w19") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }if(sem_unlink("semaph_w20") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }if(sem_unlink("semaph_w21") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }if(sem_unlink("semaph_w22") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }if(sem_unlink("semaph_w23") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }
+
+
+    if(sem_unlink("semaph_r1") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r2") < 0){
+            perror("sem_unlink(2) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r3") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r4") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r5") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r6") < 0){
+            perror("sem_unlink(3) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r7") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r8") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r9") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r10") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r11") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r12") < 0){
+            perror("sem_unlink(12) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r13") < 0){
+            perror("sem_unlink(7) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r14") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r15") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r16") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r17") < 0){
+            perror("sem_unlink(1) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r18") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("semaph_r19") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }if(sem_unlink("semaph_r20") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }if(sem_unlink("semaph_r21") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }if(sem_unlink("semaph_r22") < 0){
+            perror("sem_unlink(18) failed");
+          //  exit(EXIT_FAILURE);
+    }
+
+    if(sem_unlink("mutex_readers") < 0){
+            perror("sem_unlink(mutex_readers) failed");
+           // exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("mutex_writer") < 0){
+            perror("sem_unlink(mutex_writer) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("mutex_count") < 0){
+            perror("sem_unlink(mutex_count) failed");
+          //  exit(EXIT_FAILURE);
+    }
+    if(sem_unlink("mutex_finished") < 0){
+            perror("sem_unlink(mutex_finished) failed");
+          //  exit(EXIT_FAILURE);
+    }
