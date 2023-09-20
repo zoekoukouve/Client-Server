@@ -2,7 +2,7 @@
 #define LINES 10
 
 struct temp_shared_memory{
-    char segment[MAX_LINE_SIZE+2];
+    char segment[MAX_LINE_SIZE];
 };
 
 typedef struct temp_shared_memory* tempSharedMemory;

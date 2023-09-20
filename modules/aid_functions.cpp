@@ -77,8 +77,6 @@ void semaph_close_unlink(void* mutex_writer, void* mutex_finished, void* mutex_d
     return;
 }
 
-
-
 // Close semophores in client
 void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_diff, int segments_amount, char** sem_names_r, sem_t** semaph_r, char** sem_names_w, sem_t** semaph_w){
     
@@ -104,12 +102,6 @@ void semaph_close_client(void* mutex_writer, void* mutex_finished, void* mutex_d
         }
     }
 
-    // if (mutex_same != NULL){
-    //     if(sem_close((sem_t*)mutex_same) < 0){
-    //         perror("sem_close(mutex_same) failed!");
-    //         exit(EXIT_FAILURE);
-    //     }
-    // }
 
     if (semaph_r != NULL){
         for (int i = 1; i <= segments_amount; i++){
@@ -147,47 +139,38 @@ void return_segment(FILE* fp, int first_line, int last_line,int shm_key, tempSha
     while ((lii=fgets(line, MAX_LINE_SIZE, fp)) != NULL) {
 		if (linecounter > last_line) {
             // Detach shared memory
-            if(shmdt((void*)shared_mem) == -1){                         /////////////////////////////////////////////
-                perror("Failed to destroy shared memory segment");
-                return;
-            }
-            cout<<"efygaaaaaaaaaaaaaaaaaaaaa"<<endl;
-            fflush(stdout);
+            // if(shmdt((void*)shared_mem) == -1){                         /////////////////////////////////////////////
+            //     perror("Failed to destroy shared memory segment");
+            //     return;
+            // }
+            
             return;
 		} else if (linecounter < first_line){
             // do nothing
         } else{
-            //cout << linecounter - first_line +1;
-            //cout << "re mlka";
 
-            //fflush(stdout);
-
-            if(sem_wait((sem_t*)mutex_writer_s) < 0){
+            if(sem_wait((sem_t*)mutex_writer_s) < 0){   // Communucation server - client
                 perror("sem_wait failed on child, mutex_writer_s");
                 exit(EXIT_FAILURE);
             }
 
             strcpy(shared_mem->segment,lii);
 
-            // if (linecounter == last_line){              ///////////////////////////////////////////////////
-            //     if(shmdt((void*)shared_mem) == -1){
-            //         perror("Failed to destroy shared memory segment");
-            //         return;
-            //     } 
-            // }
+            if (linecounter == last_line){              // safe detach from server
+                if(shmdt((void*)shared_mem) == -1){
+                    perror("Failed to destroy shared memory segment");
+                    return;
+                } 
+            }
 
-            //fflush(stdout);
-            if(sem_post((sem_t*)mutex_reader) < 0){   // Communucation parent - child
+            if(sem_post((sem_t*)mutex_reader) < 0){   // Communucation server - client
                 perror("mutex_writer_s failed on child, mutex_reader");
                 exit(EXIT_FAILURE);
             }
-            
-            //cout << shared_mem->segment[linecounter - first_line +1];
-  
+              
         }
         
 		linecounter++;
-       // cout << linecounter <<"zoeeee" << last_line << endl;
 	}
        
     

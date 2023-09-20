@@ -30,7 +30,6 @@ vector<string> filenames;
 void child(FILE *,int, int, int, sharedMemory, void*, void*, void*, void*, void*, int, double);
 
 void* threadFunction(void* arg) {
-    //cout << "dhiiiiiiiiiiiiiiiiiiiiiiiiiiii"<<endl;
     
     // Extract the data from the argument
     CallData* lineData = (CallData*)arg;
@@ -52,17 +51,11 @@ void* threadFunction(void* arg) {
     return_segment(fp, first_line, last_line, (int)key, shared_mem, lineData->mutex_r, lineData->mutex_w);
     fclose(fp);
 
-
-    // if(sem_post((sem_t*)lineData->mutex_s) < 0){
-    //     perror("sem_post failed on parent");
-    //     exit(EXIT_FAILURE);
-    // }
-    cout<<"dystuxws m "<<endl;
     pthread_exit(NULL);
 }
 
 
-void parent(int clients, int files, int requests){
+void parent(int clients, int files, int requests, double lamda){
     
     // Create and initialize semaphores
     sem_t* mutex_writer = sem_open("mutex_writer", O_CREAT | O_EXCL, SEM_PERMS, INITIAL_VALUE);
@@ -181,7 +174,7 @@ void parent(int clients, int files, int requests){
         if(pids[i] == 0){          // If it is child process
             sprintf(filenames, "file_%d", i);       // Record file
 	        writefile = fopen(filenames, "w");
-            child(writefile, clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, semaph_r[i+1], semaph_w[i+1], i+1, 0.5);
+            child(writefile, clients, requests, files, shared_memory, mutex_writer, mutex_finished, mutex_diff, semaph_r[i+1], semaph_w[i+1], i+1, lamda);
             semaph_close_client(mutex_writer, mutex_finished, mutex_diff, clients, sem_names_r, semaph_r, sem_names_w, semaph_w);
             exit(0);
         }
@@ -190,8 +183,6 @@ void parent(int clients, int files, int requests){
 
 
     // Services
-
-    //vector<pthread_t> subThreads(clients*requests);  // Vector to store worker threads
     pthread_t subThreads[clients*requests];
     int i = 0;
     vector<CallData*> data;  // Temporary vector to store data of each line
@@ -203,6 +194,7 @@ void parent(int clients, int files, int requests){
         exit(EXIT_FAILURE);
     }
 
+    // Check if chlidren are finished
     if(sem_wait(mutex_finished) < 0){
         perror("sem_post failed on parent");
         exit(EXIT_FAILURE);
@@ -215,7 +207,6 @@ void parent(int clients, int files, int requests){
             exit(EXIT_FAILURE);
         } 
         
-        cout<<"filarakia m "<<endl;
           
         if(sem_wait(mutex_diff) < 0){
             perror("sem_wait failed on child, mutex_diff");
@@ -224,34 +215,33 @@ void parent(int clients, int files, int requests){
             
         if (shared_memory->temp_mem_used == 1){
            
-            callData = new CallData();  // Allocate memory 
+            callData = new CallData();  // Thread's argument
             
             callData->last_line = shared_memory->end_line;
             callData->first_line = shared_memory->start_line;
             callData->wanted_file = shared_memory->file_num;
             callData->key = shared_memory->temp_shared_mem_key;
-            callData->mutex_r = semaph_r[shared_memory->sem_id];
+            callData->mutex_r = semaph_r[shared_memory->sem_id];   // Semaphores of shared memory
             callData->mutex_w = semaph_w[shared_memory->sem_id];
-            cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
+            // cout << "File " << callData->wanted_file << "lines: " << callData->first_line << callData->last_line << endl;
             data.push_back(callData);
 
-///////////////////////////////////////////////////thread//////////////////////////////////////////////////////////////////////
             int shmid_s = shmget(shared_memory->temp_shared_mem_key, sizeof(temp_shared_memory), 0666 | IPC_CREAT );
             if (shmid_s == -1) {
                 perror("Failed to get shared memory segment");
                 return ;
             }
 
-    // Attach the shared memory segment to the process's address space
+            // Attach the shared memory segment to the process's address space
             tempSharedMemory shared_mem = (tempSharedMemory)shmat(shmid_s, NULL, 0);
             if (shared_mem == reinterpret_cast<temp_shared_memory*>(-1)) {
                 perror("Failed to attach shared memory in server");
                 return;
             }
-           // cout << endl << shared_memory->temp_shared_mem_key << " "<< shared_mem->k << endl;
 
             callData->shared_mem = shared_mem;
             
+            // Create the thread
             if (pthread_create(&subThreads[i], NULL, threadFunction, (void*)data[i]) != 0) {
                 cerr << "Error creating sub thread " << i << endl;
                 return;
@@ -259,50 +249,37 @@ void parent(int clients, int files, int requests){
 
             i++;
 
-            //Detach shared memory
-            // if(shmdt((void*)shared_mem) == -1){
-            //     perror("Failed to destroy shared memory segment");
-            //     return;
-            // }
-          
-           // string sfilename = filenames[wanted_file];
-           cout << "vghkaaaaaaaaaaaaaaa"<<endl;
-
-
            shared_memory->temp_mem_used = 0;
 
-
+           
            if(sem_post((sem_t*)mutex_writer) < 0){
-           // semaph_close_client(mutex_writer, mutex_finished, mutex_diff, mutex_same);
                 perror("sem_post failed on child, semaph[wanted_seg]");
                 exit(EXIT_FAILURE);
             }
 
         }  
+
+        // Check if chlidren are finished
         if(sem_wait(mutex_finished) < 0){
             perror("sem_post failed on parent");
             exit(EXIT_FAILURE);
         }      
 
     }
-    cout << i << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"<<endl;
-
-  //  cout << endl <<" alelouiaaaaaaaaaaaaa tsirp"<< endl;
+    
 
     // Wait for sub threads to finish
     for (int i = 0; i < clients*requests; ++i) {
         pthread_join(subThreads[i], NULL);
     }
 
+    // Delete arguments of the threads
     for (int i = 0; i < clients*requests; ++i) {
         delete data[i];
     }
     
     
     int status;
-
-  //  cout << endl <<" alelouiaaaaaaaaaaaaa"<< endl;
-   //  fflush(stdout);
 
     // Collect children that have finished
     for(int i = 0; i < clients; i++){
@@ -332,13 +309,12 @@ int main(int argc, char** argv){
     int N = atoi(argv[1]);
     int M = atoi(argv[2]);
     int L = atoi(argv[3]);
-    cout << N <<M<<L << endl;
-
+    double lamda = stod(argv[4]);
     
     for (int i = 0; i < M; i++) {
-        filenames.push_back(argv[i + 4]);
+        filenames.push_back(argv[i + 5]);
     }
-   
-    parent(N, M, L);
+
+    parent(N, M, L, lamda);
 
 }
