@@ -53,6 +53,7 @@ parent_threads.cpp: Περιέχει μια συνάρτηση main η οποί�
 - clients.c: Περιέχει τον κώδικα κάθε διαδικασίας πελάτη.
 - aid_functions.cpp: Περιέχει βοηθητικές συναρτήσεις.
 - shared_memory.h: Περιέχει το shared memory.
+  
 Υπάρχει MakeFile, οπότε η μεταγλώττιση του εκτελέσιμου γίνεται με την εντολή “make” και η εκτέλεση με μια εντολή της μορφής 
 ./server clients files_amounts requests lamda filenames
 πχ ./server 20 2 7 0.05 example.txt notes.txt
