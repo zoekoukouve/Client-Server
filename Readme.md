@@ -50,9 +50,9 @@ H κύρια διαμοιραζόμενη μνήμη μέσω της οποία�
 Το πρόγραμμα αποτελείται από τα πηγαία αρχεία parent_threads.cpp clients.cpp aid_functions.cpp και τα
 header αρχεία shared_memory.h aid_functions.h.
 parent_threads.cpp: Περιέχει μια συνάρτηση main η οποία χηριμοποείται για να λάβει τα arguments εκτέλεσης, μια συνάρτηση parent που υλοποιεί τον πολυνηματικό server οπώς περιγράφεται στις παραγράφους "Εισαγωγή", "Συγχρονισμός της κύριας μνήμης - υποβολή αιτημάτος - λούπα εξυπηρέτησης" και μια συνάρτηση threadFunction η οποία υλοποιί κάθε ξεχωριστό thread του server πώς περιγράφεται στις παραγράφους "Ικανοποίηση αιτήματος - thread του server".
-clients.c: Περιέχει τον κώδικα κάθε διαδικασίας πελάτη.
-aid_functions.cpp: Περιέχει βοηθητικές συναρτήσεις.
-shared_memory.h: Περιέχει το shared memory.
+- clients.c: Περιέχει τον κώδικα κάθε διαδικασίας πελάτη.
+- aid_functions.cpp: Περιέχει βοηθητικές συναρτήσεις.
+- shared_memory.h: Περιέχει το shared memory.
 Υπάρχει MakeFile, οπότε η μεταγλώττιση του εκτελέσιμου γίνεται με την εντολή “make” και η εκτέλεση με μια εντολή της μορφής 
 ./server clients files_amounts requests lamda filenames
 πχ ./server 20 2 7 0.05 example.txt notes.txt
