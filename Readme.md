@@ -1,5 +1,8 @@
- ./server clients files_amounts requests lamda filenames
+# Execution
+There is a MakeFile, so the executable is compiled with the "make" command and executed with a command of the form 
+#### ./server clients files_amounts requests lamda filenames 
 N clients make L requests each from M files. One request is a part of a file, from a specific line to a specific line. 
+#### e.g. ./server 20 2 7 0.05 example.txt notes.txt
 
 # Main shared memory is used by clients to make requests to the server. Main shared memory contains the following variables: 
 -	int file_num: the number of the requested file. 
@@ -55,7 +58,6 @@ The program consists of the source files parent_threads.cpp clients.cpp aid_func
 -	clients.cpp: Contains the code of each client procedure.
 -	aid_functions.cpp: Contains auxiliary functions.
 -	shared_memory.h: Contains shared memory's definition.
-There is a MakeFile, so the executable is compiled with the "make" command and executed with a command of the form ./server clients files_amounts requests lamda filenames e.g. ./server 20 2 7 0.05 example.txt notes.txt
 
 
 # Comments
