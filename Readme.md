@@ -1,10 +1,11 @@
 # Execution
 There is a MakeFile, so the executable is compiled with the "make" command and executed with a command of the form 
 #### ./server clients files_amounts requests lamda filenames 
-N clients make L requests each from M files. One request is a part of a file, from a specific line to a specific line. 
+One request is a part of a file, from a specific line to a specific line. 
 #### e.g. ./server 20 2 7 0.05 example.txt notes.txt
 
-# Main shared memory is used by clients to make requests to the server. Main shared memory contains the following variables: 
+# Shared Memory
+Main shared memory is used by clients to make requests to the server. Main shared memory contains the following variables: 
 -	int file_num: the number of the requested file. 
 -	int start_line: the number of the requested first line. 
 -	int end_line: number of the requested last line. 
