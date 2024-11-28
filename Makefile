@@ -9,8 +9,8 @@ CXX = g++
 CXXFLAGS = -Wall -Werror -g -I$(INCLUDE) -pthread
 
 # Αρχεία .o
-SRCS = parent_threads.cpp $(MODULES)/aid_functions.cpp client.cpp #$(MODULES)/redirection.cpp $(MODULES)/pipes.cpp $(MODULES)/execution.cpp
-OBJS = parent_threads.o $(MODULES)/aid_functions.o client.o #$(MODULES)/redirection.o $(MODULES)/pipes.o $(MODULES)/execution.o
+SRCS = parent_threads.cpp $(MODULES)/aid_functions.cpp client.cpp 
+OBJS = parent_threads.o $(MODULES)/aid_functions.o client.o 
 
 # Το εκτελέσιμο πρόγραμμα
 EXEC = server
