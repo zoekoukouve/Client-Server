@@ -1,4 +1,4 @@
-# Introduction 
+# Note 
 The following project was completed as part of the Operating Systems course at the Department of Informatics and Telecommunications at the University of Athens and was graded 100/100.
 # Execution
 There is a MakeFile, so the executable is compiled with the "make" command and executed with a command of the form 
