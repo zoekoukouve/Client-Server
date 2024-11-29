@@ -1,5 +1,5 @@
-# Note 
-The following project was completed as part of the Operating Systems Κ22 course at the Department of Informatics and Telecommunications at the University of Athens and was graded 100/100.
+# Project Overview 
+The following project was developed as part of the Operating Systems K22 course at the Department of Informatics and Telecommunications at the University of Athens and was graded 100/100.
 # Execution
 There is a MakeFile, so the executable is compiled with the "make" command and executed with a command of the form 
 #### ./server clients files_amounts requests lamda filenames 
@@ -25,7 +25,7 @@ Main shared memory is used by clients to make requests to the server. Main share
 
     
 # Introduction
-Initially, erver creates all semaphores that was previously mentioned (initialized to 1 mutex_writer, mutex_finished, semaph_r and initialized to 0 mutex_diff and semaph_w), creates the main shared memory and forks to create the clients. Then, server performs a client service loop, which is described in detail below. A separate thread is used to serve each request. Finally, it performs the necessary cleanup.
+Initially, the server creates all semaphores that was previously mentioned (initialized to 1 mutex_writer, mutex_finished, semaph_r and initialized to 0 mutex_diff and semaph_w), creates the main shared memory and forks to create the clients. Then, server performs a client service loop, which is described in detail below. A separate thread is used to serve each request. Finally, it performs the necessary cleanup.
  
 
 # Main memory synchronisation - request submission - service loop
@@ -34,7 +34,7 @@ Initially, erver creates all semaphores that was previously mentioned (initializ
 3.	The client downs the mutex_writer semantic to request access to the main memory.
 4.	The client modifies the file_num, start_line, end_line, temp_mem_used, temp_shared_mem_key, sem_id fields.
 5.	The client ups mutex_diff semaphore to signal to the server that there is a new request to serve.
-6.	Server dows mutex_diff semicarrier.
+6.	Server dows mutex_diff semaphore.
 7.	Server retrieves from the main shared memory the unneeded data to service the request.
 8.	Server attaches this process to the cache created by the client.
 9.	The server identifies which semaphore to use from the semaph_r, semaph_w tables to manage the cache main memory via sem_id.
