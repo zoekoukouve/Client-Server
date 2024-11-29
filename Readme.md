@@ -1,5 +1,5 @@
 # Project Overview 
-The following project was developed as part of the Operating Systems K22 course at the Department of Informatics and Telecommunications at the University of Athens and was graded 100/100.
+This project was developed as part of the Operating Systems K22 course at the Department of Informatics and Telecommunications, University of Athens, and received a grade of 100/100.
 # Execution
 There is a MakeFile, so the executable is compiled with the "make" command and executed with a command of the form 
 #### ./server clients files_amounts requests lamda filenames 
